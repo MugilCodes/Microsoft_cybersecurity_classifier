@@ -1,162 +1,157 @@
-# Microsoft_cybersecurity_classifier
-A machine learning project to automatically classify cybersecurity incidents (TP, FP, BP) using Microsoft’s GUIDE dataset to improve threat triage and response efficiency.
+#  Microsoft Cybersecurity Classifier
 
-## 1. **Project Overview**
-
-This project aims to automate the classification of cybersecurity incidents into three triage grades:
-- **True Positive (TP)**
-- **Benign Positive (BP)**
-- **False Positive (FP)**
-
-Using 4.75 million samples from Microsoft’s GUIDE dataset (original size: 9.5M), the model helps **Security Operations Centers (SOCs)** prioritize threats, reduce analyst fatigue, and improve enterprise security.
+A machine learning project to automatically classify cybersecurity incidents (`TP`, `FP`, `BP`) using Microsoft’s GUIDE dataset — helping SOCs streamline threat triage, reduce alert fatigue, and improve enterprise response efficiency.
 
 ---
 
-### 2. **Exploratory Data Analysis (EDA)**
+##  1. Project Overview
 
-- Visualized incident distributions across `Hour`, `Day`, `Month`, and `Category`.
+This project classifies security incidents into:
 
-  ![Hourly Incidents](./images/hourly_incidents.png)  
-  ![Daily Incidents](./images/daywise_incidents.png)  
-  ![Monthly Incidents](./images/monthly_incidents.png)  
-  ![Category Distribution](./images/category.png)
+-  **True Positive (TP)** – actual threats  
+-  **Benign Positive (BP)** – flagged but safe  
+-  **False Positive (FP)** – incorrectly flagged
 
-- Identified significant class imbalance in the target (`IncidentGrade`):
-
-  ![Target Distribution](./images/target_distribution.png)
-
-- Correlation heatmap to understand co-linearity among numeric features:
-
-  ![Heatmap](./images/heatmap.png)
+ **Dataset**: 4.75M rows sampled from the original 9.5M GUIDE dataset  
+ **Goal**: Automate incident triage using machine learning  
+ **Impact**: Supports SOC teams, improves alert handling, boosts accuracy
 
 ---
 
-### 3. **Model Training and Evaluation**
+##  2. Feature Engineering
 
-- **Baseline Models**:
-  - Logistic Regression → Macro F1: 0.3936  
-  - Decision Tree → Macro F1: 0.9875 (overfitting)
+Feature engineering was a key step in improving model performance. It included:
 
-- **Advanced Models**:
-  - Random Forest → Macro F1: 0.8089  
-  - Gradient Boosting → Macro F1: 0.8237  
-  - XGBoost → Macro F1: 0.8591  
-  - LightGBM → Macro F1: 0.8920  
-  - Tuned LightGBM → **Macro F1: 0.9418**
-
-  ![Model Comparison](./images/all_models.png)
-
-- Stratified Train-Validation split (70/30) ensured class balance across splits.
+-  **Datetime Feature Extraction** from `Timestamp`:
+  - Extracted `Day`, `Month`, `Year`, `Hour`, and `Time`
+-  **Categorical Encoding**:
+  - Label Encoding for `Category`, `EntityType`, `EvidenceRole`, etc.
+-  **Null Handling**:
+  - Dropped columns with >50% nulls: `ActionGrouped`, `ActionGranular`, `MitreTechniques`
+-  **Dropped High Cardinality Identifiers**:
+  - `Sha256`, `AccountSid`, `DeviceId`, `FolderPath`, etc.
+-  **Class Balance Analysis**:
+  - Used stratified train-validation split to maintain distribution
 
 ---
 
-### 4. **Hyperparameter Tuning**
+##  3. Exploratory Data Analysis (EDA)
 
-- Tuned **LightGBM** using `GridSearchCV` with GPU support.
-- Best Parameters:
-  ```python
-  {
-      'learning_rate': 0.1,
-      'max_depth': 20,
-      'n_estimators': 200,
-      'num_leaves': 64
-  }
-5. Feature Importance
-Used SHAP for model interpretation.
+- Incident trends by **Hour**, **Day**, **Month**, and **Category**:
 
-Top features included:
+  ![Incidents](https://github.com/MugilCodes/Microsoft_cybersecurity_classifier/blob/main/images/Incidents.png)
 
-DetectorId
+- **Target imbalance** identified across TP, BP, and FP:
 
-EntityType
+  ![Target Distribution](https://github.com/MugilCodes/Microsoft_cybersecurity_classifier/blob/main/images/Distribution_target_variable.png)
 
-EvidenceRole
+- **Correlation heatmap** for numerical features:
 
-Hour
-
-AlertTitle
-
-
-
-6. Final Evaluation
-Evaluated on unseen test data (4.1M rows).
-
-Final performance:
-
-Metric	Class 0 (TP)	Class 1 (BP)	Class 2 (FP)	Macro Avg
-Precision	0.91	0.89	0.92	0.91
-Recall	0.93	0.84	0.93	0.90
-F1 Score	0.92	0.86	0.93	0.90
-
-
-
- Results Summary
-Best Model: Tuned LightGBM
-
-Validation Macro F1 Score: 0.9418
-
-Test Macro F1 Score: 0.9021
-
-Top Features (SHAP): DetectorId, EntityType, Hour, EvidenceRole, AlertTitle
-
-Model Benefits:
-
-Balanced precision & recall for all classes
-
-GPU-accelerated model with low latency
-
-Explainable and efficient
-
- Recommendations
-Deploy via: FastAPI + Docker
-
-Use Cases:
-
-Automated SOC triage
-
-Alert suppression and escalation
-
-Analyst assist dashboards with SHAP
-
-Maintenance:
-
-Retrain monthly
-
-Monitor prediction drift
-
-Audit logs for transparency
-
-Future Improvements:
-
-Include textual fields (e.g., AlertDescription) with NLP
-
-Explore deep learning for time-sequence behavior
-
-Add ensemble modeling for increased robustness
-
-© 2025 – Project by [Mugil]
-
-
+  ![Heatmap](https://github.com/MugilCodes/Microsoft_cybersecurity_classifier/blob/main/images/Correlation_Heatmap.png)
 
 ---
 
-##  What You Need to Do:
-1. Place your generated PNGs in the `/images/` folder:
-   - `hourly_incidents.png`
-   - `daywise_incidents.png`
-   - `monthly_incidents.png`
-   - `category.png`
-   - `target_distribution.png`
-   - `heatmap.png`
-   - `all_models.png`
-   - `hyperparameter_tuning.png`
-   - `shap.png`
-   - `test_eval.png`
+##  4. Model Training and Evaluation
 
-2. Rename `[Your Name]` in the footer.
+###  Baseline Models
 
-Would you like me to:
-- Package this into a downloadable `.md` file?
-- Help you generate the visualizations for missing image paths?
+| Model               | Macro F1 Score |
+|---------------------|----------------|
+| Logistic Regression | 0.3936         |
+| Decision Tree       | 0.9875 *(overfit)* |
 
-Let me know and I’ll do it right away.
+![Baseline Comparison](https://github.com/MugilCodes/Microsoft_cybersecurity_classifier/blob/main/images/Baseline_model.png)
+
+---
+
+###  Advanced Models
+
+| Model             | Macro F1 Score |
+|------------------|----------------|
+| Random Forest     | 0.8089         |
+| Gradient Boosting | 0.8237         |
+| XGBoost           | 0.8591         |
+| LightGBM          | 0.8920         |
+| **Tuned LightGBM**| **0.9418**     |
+
+![Advanced Model Comparison](https://github.com/MugilCodes/Microsoft_cybersecurity_classifier/blob/main/images/Final_Comparision.png)
+
+ **Train-Validation Split**: 70/30 (Stratified)
+
+---
+
+##  5. Feature Importance (SHAP)
+
+To interpret the model, we used **SHAP (SHapley Additive Explanations)** — a game-theoretic approach to explain the output of tree-based models.
+
+ **Top 5 Features**:
+
+| Feature      |
+|--------------|
+| DetectorId   |   
+| EntityType   |   
+| EvidenceRole |      
+| Hour         |      
+| AlertTitle   |      
+
+ **SHAP Plot**:
+
+![SHAP](https://github.com/MugilCodes/Microsoft_cybersecurity_classifier/blob/main/images/Feature_Importance.png)
+
+---
+
+##  6. Final Evaluation on Test Set
+
+Tested on **4.1 million unseen records** using a stratified approach.
+
+| Metric     | TP (Class 0) | BP (Class 1) | FP (Class 2) | Macro Avg |
+|------------|--------------|--------------|--------------|-----------|
+| Precision  | 0.91         | 0.89         | 0.92         | 0.91      |
+| Recall     | 0.93         | 0.84         | 0.93         | 0.90      |
+| F1 Score   | 0.92         | 0.86         | 0.93         | 0.90      |
+
+![TestData](https://github.com/MugilCodes/Microsoft_cybersecurity_classifier/blob/main/images/Test_Classification.png)
+
+---
+
+##  7. Results Summary
+
+|  Attribute              |  Value                                           |
+|--------------------------|----------------------------------------------------|
+| Best Model               | Tuned LightGBM                                     |
+| Validation Macro F1      | 0.9418                                             |
+| Test Macro F1            | 0.9021                                             |
+| Top Features (SHAP)      | DetectorId, EntityType, Hour, EvidenceRole, AlertTitle |
+| Training Speed           | GPU Accelerated                                   |
+| Explainability           | SHAP + Feature Analysis                           |
+
+ **Benefits**:
+
+- Balanced and robust classification  
+- Supports real-time inference  
+- Interpretable and efficient model pipeline
+
+---
+
+##  8. Recommendations
+
+###  Deployment
+- Expose the model via **FastAPI**
+- Use **Docker** for containerization
+- Deploy on **GPU-enabled servers** for latency-sensitive environments
+
+###  Maintenance
+- Retrain **monthly** with new alert data
+- Monitor **prediction drift** and performance degradation
+- Maintain **logs** for auditing predictions and debugging
+
+###  Future Enhancements
+- Add **textual features** using NLP (e.g., Alert Description, Category Names)
+- Try **LSTM / Transformer-based** models for sequence-based learning
+- Explore **ensemble models** (LightGBM + XGBoost + Neural Nets)
+
+---
+
+ **Timeline**: Completed in 1 week  
+ **Author**: [Mugil]  
+ **Repo**: `Microsoft_cybersecurity_classifier`
